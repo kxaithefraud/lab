@@ -1,0 +1,42 @@
+services:
+  mysql:
+    image: mysql:8.0.34
+    container_name: zabbix-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - zabbix-mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"  # Needed so the host-mode proxy can reach it
+    networks:
+      - zabbix-network
+
+  zabbix-proxy:
+    image: ${PROXY_VERSION}
+    container_name: zabbix-proxy
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    network_mode: host  # Host networking to support both VLANs
+    environment:
+      DB_SERVER_HOST: 127.0.0.1
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      ZBX_HOSTNAME: ${ZBX_PROXY_NAME}
+      ZBX_SERVER_HOST: ${ZBX_SERVER_HOST}
+      ZBX_PROXYMODE: ${ZBX_PROXY_MODE}
+      ZBX_DEBUGLEVEL: 3
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+
+volumes:
+  zabbix-mysql-data:
+
+networks:
+  zabbix-network:
+    driver: bridge
