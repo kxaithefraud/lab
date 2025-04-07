@@ -1,0 +1,40 @@
+Enable SAML authentication: Yes
+Enable JIT provisioning:    Yes
+Case-sensitive login:       Yes
+Configure JIT provisioning: Yes
+
+IdP entity ID:
+https://sts.windows.net/00270317-c751-45ee-8832-a78d1fdd974f/
+
+SSO service URL:
+https://login.microsoftonline.com/00270317-c751-45ee-8832-a78d1fdd974f/saml2
+
+SLO service URL:
+https://login.microsoftonline.com/00270317-c751-45ee-8832-a78d1fdd974f/saml2
+
+Username attribute:
+user.mail
+
+SP entity ID:
+zabbix-mit
+
+Group name attribute:
+user.groups
+
+User name attribute:
+user.givenname
+
+User last name attribute:
+user.surname
+
+User group mapping:
+-   SAML Group patter
+    Zabbix Admin
+
+-   User groups
+    Zabbix administrators
+
+-   User role
+    Super admin role
+
+
