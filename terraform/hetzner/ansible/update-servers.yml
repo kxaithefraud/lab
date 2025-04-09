@@ -1,0 +1,17 @@
+---
+- name: Update all packages on all servers
+  hosts: all
+  become: yes
+  gather_facts: false
+
+  tasks:
+    - name: Update APT cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
+        autoremove: yes
+        autoclean: yes

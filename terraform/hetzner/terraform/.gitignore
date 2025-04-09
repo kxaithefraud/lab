@@ -1,0 +1,6 @@
+*var*
+*hetzner-server.pub
+terraform.tfvars
+*.tfstate
+*.tfstate.*
+.terraform/
