@@ -1,0 +1,55 @@
+- name: Detect OS, update system, and reboot if needed
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  vars:
+    need_reboot: false
+
+  tasks:
+    - name: Show current kernel version
+      command: uname -r
+      register: kernel_before
+
+    - name: Print OS info
+      debug:
+        msg: "Detected OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+
+    - name: Update APT-based systems
+      apt:
+        update_cache: yes
+        upgrade: dist
+      when: ansible_os_family == "Debian"
+
+    - name: Update YUM-based systems
+      yum:
+        name: '*'
+        state: latest
+      when: ansible_os_family == "RedHat"
+
+    - name: Update DNF-based systems (e.g. Fedora, Rocky)
+      dnf:
+        name: '*'
+        state: latest
+      when: ansible_pkg_mgr == "dnf"
+
+    - name: Show kernel version after update
+      command: uname -r
+      register: kernel_after
+
+    - name: Check if kernel version has changed
+      set_fact:
+        need_reboot: true
+      when: kernel_before.stdout != kernel_after.stdout
+
+    - name: Reboot if kernel changed
+      reboot:
+        msg: "Rebooting after kernel upgrade"
+        connect_timeout: 5
+        reboot_timeout: 600
+        test_command: whoami
+      when: need_reboot
+
+    - name: Confirm server is back and running
+      wait_for_connection:
+        timeout: 300
