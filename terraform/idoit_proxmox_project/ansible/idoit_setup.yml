@@ -1,0 +1,88 @@
+- name: Configure i-doit Server
+  hosts: idoit
+  become: yes
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: Update APT packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install required packages
+      apt:
+        name:
+          - apache2
+          - mariadb-server
+          - php
+          - php-mysql
+          - php-xml
+          - php-cli
+          - php-curl
+          - php-gd
+          - php-mbstring
+          - php-zip
+          - unzip
+          - wget
+        state: present
+
+    - name: Set MariaDB root password
+      mysql_user:
+        login_user: root
+        login_password: ""
+        name: root
+        host_all: true
+        password: "{{ mysql_root_password }}"
+        state: present
+
+    - name: Remove anonymous users
+      mysql_user:
+        name: ''
+        host_all: true
+        state: absent
+
+    - name: Disallow root login remotely
+      mysql_user:
+        name: root
+        host: '%'
+        state: absent
+
+    - name: Remove test database
+      mysql_db:
+        name: test
+        state: absent
+
+    - name: Create i-doit database
+      mysql_db:
+        name: "{{ idoit_db_name }}"
+        state: present
+
+    - name: Create i-doit database user
+      mysql_user:
+        name: "{{ idoit_db_user }}"
+        password: "{{ idoit_db_password }}"
+        priv: "{{ idoit_db_name }}.*:ALL"
+        state: present
+
+    - name: Download i-doit
+      get_url:
+        url: "https://sourceforge.net/projects/i-doit/files/i-doit/34/idoit-open-34.zip/download"
+        dest: "/tmp/idoit.zip"
+
+    - name: Unzip i-doit
+      unarchive:
+        src: "/tmp/idoit.zip"
+        dest: "/var/www/html/"
+        remote_src: yes
+
+    - name: Set permissions
+      file:
+        path: "/var/www/html/idoit"
+        owner: www-data
+        group: www-data
+        recurse: yes
+
+    - name: Restart Apache
+      service:
+        name: apache2
+        state: restarted
